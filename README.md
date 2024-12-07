@@ -4,9 +4,9 @@
 # 注意
 
 使用此專案的python版本為3.11.10，CUDA版本為12.6
-若要使用其他版本，請不要直接安裝requirements.txt，請先安裝pytorch，然後根據缺少的package，自行使用pip安裝
-請不要直接拿coffee_bean_dataset來直接跑訓練，那些資料還沒有手動處理過，內有大量錯誤資料
-目前僅確定coffee_bean_training.py可以正常運作
+若要使用其他版本，請不要直接安裝requirements.txt，請先安裝pytorch，然後根據缺少的package，自行使用pip安裝  
+請不要直接拿coffee_bean_dataset來直接跑訓練，那些資料還沒有手動處理過，內有大量錯誤資料  
+目前僅確定coffee_bean_training.py可以正常運作  
 TODO：將資料集完整建立，並重新調整過參數
 
 ## 專案結構
