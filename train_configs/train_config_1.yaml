@@ -1,0 +1,52 @@
+model:
+  name: resnet50
+  parameters:
+    num_classes: 2
+    weights: DEFAULT
+training:
+  batch_size: 20
+  num_workers: 4
+  learning_rate: 0.001
+  max_epochs: 1000
+  early_stopping_patience: 20
+transforms:
+- type: Resize
+  size:
+  - 256
+  - 256
+- type: RandomCrop
+  size:
+  - 256
+  - 256
+  padding: 25
+- type: ToTensor
+- type: Lambda
+  function: repeat_channels
+- type: RandomHorizontalFlip
+- type: RandomRotation
+  degrees: 30
+- type: ColorJitter
+  brightness: 0.2
+  contrast: 0.2
+  saturation: 0.2
+  hue: 0.1
+- type: Normalize
+  mean:
+  - 0.5551365613937378
+  - 0.5310814380645752
+  - 0.4438391327857971
+  std:
+  - 0.30236372351646423
+  - 0.2883330285549164
+  - 0.22104455530643463
+optimizer:
+  type: Adam
+  params:
+    lr: 0.001
+scheduler:
+  type: ReduceLROnPlateau
+  params:
+    mode: min
+    factor: 0.1
+    patience: 10
+    min_lr: 1.0e-08

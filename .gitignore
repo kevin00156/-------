@@ -1,1 +1,11 @@
-images/result/
+.old/
+lightning_logs/
+# 忽略 utils 下所有 __pycache__ 資料夾
+utils/__pycache__/
+utils/Datasets/__pycache__/
+utils/Models/__pycache__/
+Coffee bean dataset/
+
+trained_models/
+
+
