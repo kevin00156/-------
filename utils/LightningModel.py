@@ -63,7 +63,9 @@ class LightningModel(pl.LightningModule):
         x, y = batch
         logits = self(x)
         loss = nn.CrossEntropyLoss()(logits, y)
+        acc = self.accuracy(logits, y)
         self.log('test_loss', loss, prog_bar=self.show_progress_bar)
+        self.log('test_acc', acc, prog_bar=self.show_progress_bar)
 
     def configure_optimizers(self):
         return {'optimizer': self.optimizer, 'lr_scheduler': self.scheduler, 'monitor': 'val_loss'}

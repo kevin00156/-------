@@ -13,39 +13,36 @@ import plotly.graph_objs as go
 import threading
 import logging
 import numpy as np
+import torchvision
+import yaml
+from typing import Dict, Any
 
-from utils import LightningModel, CoffeeBeanDataset, CNNModel
+from utils import LightningModel, CNNModelForCIFAR10, load_config, CoffeeBeanDataset
 
 """
 參數定義
 """
 
-image_size = 128 
-batch_size = 32
-num_workers = 4
-train_size_ratio = 0.8
-val_size_ratio = 0.15
-# 初始化模型和訓練器
+model = None
 
-def repeat_channels(x):
-    return x.repeat(3, 1, 1) if x.size(0) == 1 else x
-preprocess = transforms.Compose([
-    transforms.Resize((image_size, image_size)),
-    transforms.RandomCrop(size=(image_size, image_size), padding=4),
-    transforms.ToTensor(),
-    transforms.Lambda(repeat_channels),  # 使用普通函數替代 lambda
-    transforms.RandomHorizontalFlip(),
-    transforms.RandomRotation(degrees=15),
-])
+config_path = "train_configs"
+config_filenames = [path for path in os.listdir(config_path) if path.endswith(".yaml")]
+# 根據配置文件名中的數字進行排序
+config_filenames.sort(key=lambda x: int(x.split('_')[2].split('.')[0]))
 
-train_dataset = CoffeeBeanDataset(
-    json_file="coffee_bean_dataset/dataset.json",
-    transform=preprocess
-)
-model_label_count = train_dataset.get_label_count()
-train_model = CNNModel(num_classes=model_label_count, input_size=image_size)
-optimizer = optim.Adam(train_model.parameters(), lr=0.001, weight_decay=1e-3)
-scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=5)
+
+# 確保配置文件存在
+if not config_filenames:
+    raise FileNotFoundError("未找到任何 YAML 配置文件")
+
+#print(f"找到的配置文件: {config_filenames}")
+# 加載所有配置
+training_configs = [load_config(config_path + "/" + config_filename) for config_filename in config_filenames]
+
+#print(f"訓練集大小: {len(train_dataset)}")
+#print(f"驗證集大小: {len(val_dataset)}")
+
+
 
 
 # 設定計算設備(GPU或CPU)
@@ -117,49 +114,57 @@ def run_dash():
 """
 主程式
 """
-if __name__ == "__main__":
-    print("開始執行程式")
+def main(training_config):
+    global model
+    train_model, preprocess, training_params, optimizer, scheduler = training_config
     
-    data_path = os.getcwd()
     
-    print("初始化完成")
+    # 初始化模型和訓練器
+    train_dataset_original = CoffeeBeanDataset(
+        json_file="coffee_bean_dataset/dataset.json",
+        transform=preprocess
+    )
+    model_label_count = train_dataset_original.get_label_count()
+    # 計算訓練集和驗證集的大小
+    total_size = len(train_dataset_original)
+    train_size = int(0.8 * total_size)  # 80% 用於訓練
+    val_size = int(0.15 * total_size)  # 15% 用於驗證
+    test_size = total_size - train_size - val_size  # 剩下的 5% 用於測試
 
-    # 拆分訓練集和驗證集
-    dataset_size = len(train_dataset)
-    train_size = int(train_size_ratio * dataset_size)
-    val_size = int(val_size_ratio * dataset_size)
-    test_size = dataset_size - train_size - val_size
-    
+    # 使用 random_split 將數據集分割成訓練集和驗證集
     train_dataset, val_dataset, test_dataset = torch.utils.data.random_split(
-        train_dataset, 
-        [train_size, val_size, test_size]
+        train_dataset_original, 
+        [train_size, val_size, test_size],
+        generator=torch.Generator().manual_seed(42)
     )
 
+    print("初始化完成")
+
+    # 使用配置中的批次大小和工作數
     train_loader = DataLoader(
         train_dataset,
-        batch_size=batch_size,
+        batch_size=training_params['batch_size'],
         shuffle=True,
-        num_workers=num_workers,
+        num_workers=training_params['num_workers'],
         pin_memory=True,
         persistent_workers=True)
     val_loader: DataLoader = DataLoader(
         val_dataset,
-        batch_size=batch_size,
+        batch_size=training_params['batch_size'],
         shuffle=False,
-        num_workers=num_workers,
+        num_workers=training_params['num_workers'],
         pin_memory=True,
         persistent_workers=True)
     test_loader: DataLoader = DataLoader(
         test_dataset,
-        batch_size=batch_size,
+        batch_size=training_params['batch_size'],
         shuffle=False,
-        num_workers=num_workers,
+        num_workers=training_params['num_workers'],
         pin_memory=True,
         persistent_workers=True)
     print("資料集拆分完成")
 
     logger = TensorBoardLogger(save_dir='lightning_logs')
-
 
     model = LightningModel(
         num_classes=model_label_count,
@@ -169,24 +174,37 @@ if __name__ == "__main__":
         show_progress_bar=True,
         show_result_every_epoch=False
     )
+    
     # 設定訓練器
     trainer = pl.Trainer(
-        max_epochs=1000,
+        #max_epochs=training_params['max_epochs'],
+        max_epochs=100,
         accelerator='gpu' if torch.cuda.is_available() else 'cpu',
         devices=1,
-        default_root_dir='lightning_logs',  # 儲存檢查點和日誌的目錄
+        default_root_dir='lightning_logs',
         enable_progress_bar=True,
         enable_model_summary=True,
         log_every_n_steps=1,
         logger=logger,
-        callbacks=[EarlyStopping(monitor="val_loss", patience=20, mode="min")]
+        callbacks=[EarlyStopping(monitor="val_loss", patience=training_params['early_stopping_patience'], mode="min")]
     )
     
     # 開始訓練
-    dash_thread = threading.Thread(target=run_dash,daemon=True) # 啟動 Dash 線程
+    dash_thread = threading.Thread(target=run_dash, daemon=True)  # 啟動 Dash 線程
     dash_thread.start()
-    trainer.fit(model, train_loader, val_loader)
-    trainer.test(model, test_loader)
+    try:
+        trainer.fit(model, train_loader, val_loader)
+        trainer.test(model, test_loader)
+    except KeyboardInterrupt:
+        print("訓練過程手動中斷，繼續下一個模型的訓練")
+        return
 
     # 儲存最終模型
     trainer.save_checkpoint("final_model.ckpt")
+
+
+if __name__ == "__main__":
+    print("開始執行程式")
+    for training_config in training_configs:
+        print(f"開始訓練第{training_configs.index(training_config)+1}個模型")
+        main(training_config)

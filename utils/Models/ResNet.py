@@ -1,55 +1,88 @@
-import torch.nn as nn
 import torch
-from torch.nn import functional as F
+import torch.nn as nn
+import torch.nn.functional as F
 
-# 定義 CNN 模型結構
-class ResidualBlock(nn.Module):
-    def __init__(self, in_channels, kernel_size=3, stride=1, padding=1):
-        super(ResidualBlock, self).__init__()
-        self.conv = nn.Conv2d(
-            in_channels, 
-            in_channels, 
-            kernel_size=kernel_size, 
-            stride=stride, 
-            padding=padding,
-            bias=False
-        )
-        self.batch_norm = nn.BatchNorm2d(num_features=in_channels)
-        torch.nn.init.kaiming_normal_(self.conv.weight, nonlinearity='relu')
-        torch.nn.init.constant_(self.batch_norm.weight, 0.5)
-        torch.nn.init.zeros_(self.batch_norm.bias)
+class BasicBlock(nn.Module):
+    """基本的殘差塊"""
+    expansion = 1
+
+    def __init__(self, in_channels, out_channels, stride=1, downsample=None):
+        super(BasicBlock, self).__init__()
+        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(out_channels)
+        self.relu = nn.ReLU(inplace=True)
+        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn2 = nn.BatchNorm2d(out_channels)
+        self.downsample = downsample
 
     def forward(self, x):
-        out = self.conv(x)
-        out = self.batch_norm(out)
-        out = nn.functional.relu(out)
-        return out + x
+        identity = x
 
+        out = self.conv1(x)
+        out = self.bn1(out)
+        out = self.relu(out)
 
+        out = self.conv2(out)
+        out = self.bn2(out)
 
-class ResNetModel(nn.Module):
-    def __init__(self,
-                 input_channel: int = 32, 
-                 output_channel : int =32,
-                 input_size: int = 3,
-                 output_size: int = 2,
-                 n_blocks: int = 10):
-        super(ResNetModel, self).__init__()
+        if self.downsample is not None:
+            identity = self.downsample(x)
 
-        self.n_channels = input_channel 
+        out += identity
+        out = self.relu(out)
 
-        self.conv1 = nn.Conv2d(input_size, self.n_channels, kernel_size=3, stride=1, padding=1)
-        self.resblocks = nn.Sequential(
-            *[ResidualBlock(self.n_channels) for _ in range(n_blocks)]
-        )
-        self.fc1 = nn.Linear(input_channel * 8 * 8, output_channel)
-        self.fc2 = nn.Linear(output_channel, output_size)
-
-    def forward(self, x):
-        out = F.max_pool2d(torch.relu(self.conv1(x)), 2)
-        out = self.resblocks(out)
-        out = F.max_pool2d(out, 2)
-        out = out.view(out.size(0), -1)
-        out = torch.relu(self.fc1(out))
-        out = self.fc2(out)
         return out
+
+class ResNet(nn.Module):
+    """ResNet模型"""
+    def __init__(self, block, layers, num_classes=10):
+        super(ResNet, self).__init__()
+        self.in_channels = 64
+        self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3, bias=False)
+        self.bn1 = nn.BatchNorm2d(64)
+        self.relu = nn.ReLU(inplace=True)
+        self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
+        self.layer1 = self._make_layer(block, 64, layers[0])
+        self.layer2 = self._make_layer(block, 128, layers[1], stride=2)
+        self.layer3 = self._make_layer(block, 256, layers[2], stride=2)
+        self.layer4 = self._make_layer(block, 512, layers[3], stride=2)
+        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
+        self.fc = nn.Linear(512 * block.expansion, num_classes)
+
+    def _make_layer(self, block, out_channels, blocks, stride=1):
+        downsample = None
+        if stride != 1 or self.in_channels != out_channels * block.expansion:
+            downsample = nn.Sequential(
+                nn.Conv2d(self.in_channels, out_channels * block.expansion, kernel_size=1, stride=stride, bias=False),
+                nn.BatchNorm2d(out_channels * block.expansion),
+            )
+
+        layers = []
+        layers.append(block(self.in_channels, out_channels, stride, downsample))
+        self.in_channels = out_channels * block.expansion
+        for _ in range(1, blocks):
+            layers.append(block(self.in_channels, out_channels))
+
+        return nn.Sequential(*layers)
+
+    def forward(self, x):
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.relu(x)
+        x = self.maxpool(x)
+
+        x = self.layer1(x)
+        x = self.layer2(x)
+        x = self.layer3(x)
+        x = self.layer4(x)
+
+        x = self.avgpool(x)
+        x = x.view(x.size(0), -1)
+        x = self.fc(x)
+
+        return x
+
+def resnet18(num_classes=10):
+    """構建ResNet-18模型"""
+    return ResNet(BasicBlock, [2, 2, 2, 2], num_classes)
+

@@ -1,11 +1,19 @@
 from .Datasets.CoffeeBeanDataset import CoffeeBeanDataset
-from .Models.CNNModel import CNNModel
-from .Models.ResNet import ResNetModel
+
+
 from .LightningModel import LightningModel
+from .load_parameters import load_config
+from .Models import *
+from .Datasets import *
 
 __all__ = [
     'CoffeeBeanDataset',
-    'CNNModel',
-    'ResNetModel',
+    'resnet18',
     'LightningModel',
+    'LeNet',
+    'VGG',
+    'CNNModelForCIFAR10',
+    'CNNModelForCIFAR100',
+    'CoffeeBeanDataset',
+    'load_config',
 ]
