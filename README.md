@@ -21,7 +21,7 @@ TODO：將資料集完整建立，並重新調整過參數
 
 ## 安裝
 
-1. 克隆此專案到本地端：
+1. clone專案到本地端
 
    ```bash
    git clone https://github.com/kevin00156/coffee_bean_detection
@@ -40,35 +40,16 @@ TODO：將資料集完整建立，並重新調整過參數
 
 1. **資料預處理**：
 
-   使用 `image_preprocess.py` 來處理影像資料，確保所有影像都已正確儲存並標記。
-   如果不行，請確定咖啡豆的大小閥值，並調整image_preprocess.py中的pixel_threshold_lower和pixel_threshold_upper
-   需要根據相機解析度調整
+   使用 `dataset_preprocess內的功能` 來處理影像資料，確保所有影像都已正確儲存並標記。  
+   詳細參考該資料夾內的 `README.md`
+   
 
-   ```bash
-   python image_preprocess.py
-   ```
-
-2. **建立資料集**：
-
-   使用 `dataset_creation.py` 來建立資料集。
-
-   ```bash
-   python dataset_creation.py
-   ```
-
-3. **將資料集轉換為PyTorch資料集**：
-
-   使用 `dataset_creation.py` 來將資料集轉換為PyTorch資料集。
-
-   ```bash
-   python dataset_creation.py
-   ```
 
 4. **模型訓練**：
 
    使用 `coffee_bean_training.py` 來訓練模型。此腳本會自動拆分資料集並開始訓練。
    請自行參考檔案前段參數定義，調整模型訓練參數
-   你可以在utils/Models中新建專屬自己的Model，並在coffee_bean_training.py中引用
+   你可以在utils/Models中新建專屬自己的Model，並在`coffee_bean_training.py`中引用
 
    ```bash
    python coffee_bean_training.py
@@ -77,7 +58,22 @@ TODO：將資料集完整建立，並重新調整過參數
 3. **結果可視化**：
 
    訓練過程中，您可以使用 Dash 應用程式來即時查看訓練和驗證的損失及準確率。
-   使用方法：訓練過程中在網頁中打開`192.168.1.100:8050`，即可看到可視化結果
+   使用方法：訓練過程中在網頁中打開`localhost:8050`，即可看到可視化結果
+
+   訓練完的結果會被放在'lightning_logs'資料夾中，你可以先在命令行輸入`tensorboard --logdir=lightning_logs`，
+   然後在網頁中打開`localhost:6006`，即可看到過往的訓練可視化結果
+
+4. **模型測試**：
+
+   使用 `coffee_bean_model_test.py` 來測試模型。此腳本會自動測試模型，並將結果儲存到`coffee_bean_predict`資料夾中
+
+   ```bash
+   python coffee_bean_model_test.py
+   ```
+
+   執行結果如下：
+   ![大部分是OK的圖片](readme_images/20241209_181803.jpg)
+   ![大部分是NG的圖片](readme_images/20241210_153831.jpg)
 
 ## 貢獻
 

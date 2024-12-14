@@ -1,4 +1,4 @@
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Dataset
 from torchvision import transforms
 import torch
 import os
@@ -17,7 +17,7 @@ import torchvision
 import yaml
 from typing import Dict, Any
 
-from utils import LightningModel, CNNModelForCIFAR10, load_config, CoffeeBeanDataset
+from utils import LightningModel, load_config, CoffeeBeanDataset
 
 """
 參數定義
@@ -39,8 +39,6 @@ if not config_filenames:
 # 加載所有配置
 training_configs = [load_config(config_path + "/" + config_filename) for config_filename in config_filenames]
 
-#print(f"訓練集大小: {len(train_dataset)}")
-#print(f"驗證集大小: {len(val_dataset)}")
 
 
 
@@ -114,15 +112,13 @@ def run_dash():
 """
 主程式
 """
-def main(training_config):
+def main(training_config, config_index):
     global model
-    train_model, preprocess, training_params, optimizer, scheduler = training_config
-    
+    train_model, train_transforms, val_transforms, test_transforms, training_params, optimizer, scheduler = training_config
     
     # 初始化模型和訓練器
     train_dataset_original = CoffeeBeanDataset(
-        json_file="coffee_bean_dataset/dataset.json",
-        transform=preprocess
+        json_file="Coffee bean dataset/dataset.json"
     )
     model_label_count = train_dataset_original.get_label_count()
     # 計算訓練集和驗證集的大小
@@ -137,7 +133,12 @@ def main(training_config):
         [train_size, val_size, test_size],
         generator=torch.Generator().manual_seed(42)
     )
-
+    
+    # 為每個數據集設置不同的 transform
+    train_dataset.dataset.transform = train_transforms
+    val_dataset.dataset.transform = val_transforms
+    test_dataset.dataset.transform = test_transforms
+    
     print("初始化完成")
 
     # 使用配置中的批次大小和工作數
@@ -200,11 +201,11 @@ def main(training_config):
         return
 
     # 儲存最終模型
-    trainer.save_checkpoint("final_model.ckpt")
+    trainer.save_checkpoint(f"final_model_{config_index}.ckpt")
 
 
 if __name__ == "__main__":
     print("開始執行程式")
     for training_config in training_configs:
         print(f"開始訓練第{training_configs.index(training_config)+1}個模型")
-        main(training_config)
+        main(training_config, training_configs.index(training_config)+1)

@@ -1,6 +1,17 @@
 import yaml
 import os
 
+"""
+此腳本用於生成訓練配置檔案，可以生成多個訓練配置檔案，並將其儲存到 train_configs 資料夾中。  
+請搭配utils/load_parameters.py使用
+
+使用方法：
+在main函式中，修改訓練參數，比如model, optimizer, train_transforms, val_transforms, test_transforms, optimizer, scheduler等，
+也可以根據自己的需要，新增新的訓練參數，以list的形式在每一個感興趣的參數後面增加
+更改後執行此檔案就會生成一堆yaml檔案
+"""
+
+
 def generate_train_config(config_dict, base_filename='train_config',file_path='train_configs'):
     """
     將訓練配置字典寫入YAML檔案
@@ -39,7 +50,9 @@ def create_default_config(
     training_learning_rate: float,
     training_max_epochs: int,
     training_early_stopping_patience: int,
-    transforms: list[dict],
+    train_transforms: list[dict],
+    val_transforms: list[dict],
+    test_transforms: list[dict],
     optimizer: dict,
     scheduler: dict
     ):
@@ -58,7 +71,9 @@ def create_default_config(
             'max_epochs': training_max_epochs,
             'early_stopping_patience': training_early_stopping_patience
         },
-        'transforms': transforms,
+        'train_transforms': train_transforms,
+        'val_transforms': val_transforms,
+        'test_transforms': test_transforms,
         'optimizer': optimizer,
         'scheduler': scheduler
     }
@@ -66,166 +81,63 @@ if __name__ == '__main__':
     
     num_classes = 2
     input_size = 256
-
+    mean = [0.5551365613937378, 0.5310814380645752, 0.4438391327857971]
+    std = [0.30236372351646423, 0.2883330285549164, 0.22104455530643463]
     models = [
-        {'name': 'CNNModelForCIFAR10',
+        {'name': 'resnet50',#你可以改成自定義的model，或是pytorch官方的model
          'parameters': {
              'num_classes': num_classes,
-             'input_size': input_size,
-             'hidden_layers': [256, 128, 64],
-             'activation_function': 'LeakyReLU',
-             'dropout_rate': 0.1,
-             'num_pool_layers': 3,
-             'conv_start_size': 64
-             }},
-        {'name': 'CNNModelForCIFAR10',
-         'parameters': {
-             'num_classes': num_classes,
-             'input_size': input_size,
-             'hidden_layers': [256, 128, 64],
-             'activation_function': 'LeakyReLU',
-             'dropout_rate': 0.1,
-             'num_pool_layers': 4,
-             'conv_start_size': 64
-             }},
-        {'name': 'CNNModelForCIFAR10',
-         'parameters': {
-             'num_classes': num_classes,
-             'input_size': input_size,
-             'hidden_layers': [256, 128, 64],
-             'activation_function': 'LeakyReLU',
-             'dropout_rate': 0.1,
-             'num_pool_layers': 5,
-             'conv_start_size': 64
-             }},
-        {'name': 'CNNModelForCIFAR10',
-         'parameters': {
-             'num_classes': num_classes,
-             'input_size': input_size,
-             'hidden_layers': [256, 128, 64],
-             'activation_function': 'LeakyReLU',
-             'dropout_rate': 0.1,
-             'num_pool_layers': 3,
-             'conv_start_size': 128
-             }},
-        {'name': 'CNNModelForCIFAR10',
-         'parameters': {
-             'num_classes': num_classes,
-             'input_size': input_size,
-             'hidden_layers': [512, 256, 128, 64],
-             'activation_function': 'LeakyReLU',
-             'dropout_rate': 0.1,
-             'num_pool_layers': 3,
-             'conv_start_size': 64
-             }},
-        {'name': 'CNNModelForCIFAR10',
-         'parameters': {
-             'num_classes': num_classes,
-             'input_size': input_size,
-             'hidden_layers': [256, 128, 64],
-             'activation_function': 'LeakyReLU',
-             'dropout_rate': 0,
-             'num_pool_layers': 3,
-             'conv_start_size': 64
-             }},
-        {'name': 'CNNModelForCIFAR10',
-         'parameters': {
-             'num_classes': num_classes,
-             'input_size': input_size,
-             'hidden_layers': [256, 128, 64],
-             'activation_function': 'LeakyReLU',
-             'dropout_rate': 0.3,
-             'num_pool_layers': 3,
-             'conv_start_size': 128
-             }},
-        {'name': 'CNNModelForCIFAR10',
-         'parameters': {
-             'num_classes': num_classes,
-             'input_size': input_size,
-             'hidden_layers': [256, 128, 64],
-             'activation_function': 'ReLU',
-             'dropout_rate': 0.3,
-             'num_pool_layers': 3,
-             'conv_start_size': 64
-             }},
-        {'name': 'CNNModelForCIFAR10',
-         'parameters': {
-             'num_classes': num_classes,
-             'input_size': input_size,
-             'hidden_layers': [256, 128, 64],
-             'activation_function': 'ReLU',
-             'dropout_rate': 0.1,
-             'num_pool_layers': 3,
-             'conv_start_size': 64
-             }},
-        {'name': 'CNNModelForCIFAR10',
-         'parameters': {
-             'num_classes': num_classes,
-             'input_size': input_size,
-             'hidden_layers': [256, 128, 64],
-             'activation_function': 'RReLU',
-             'dropout_rate': 0.3,
-             'num_pool_layers': 3,
-             'conv_start_size': 64
-             }},
-        {'name': 'CNNModelForCIFAR10',
-         'parameters': {
-             'num_classes': num_classes,
-             'input_size': input_size,
-             'hidden_layers': [256, 128, 64],
-             'activation_function': 'ELU',
-             'dropout_rate': 0.3,
-             'num_pool_layers': 3,
-             'conv_start_size': 64
-             }},
-        {'name': 'CNNModelForCIFAR10',
-         'parameters': {
-             'num_classes': num_classes,
-             'input_size': input_size,
-             'hidden_layers': [256, 128, 64],
-             'activation_function': 'Mish',
-             'dropout_rate': 0.3,
-             'num_pool_layers': 3,
-             'conv_start_size': 64
-             }},
-        {'name': 'CNNModelForCIFAR10',
-         'parameters': {
-             'num_classes': num_classes,
-             'input_size': input_size,
-             'hidden_layers': [256, 128, 64],
-             'activation_function': 'LeakyReLU',
-             'dropout_rate': 0.3,
-             'num_pool_layers': 4,
-             'conv_start_size': 64
+             'weights': 'DEFAULT'
              }},
     ]
-    training_batch_size = 100
+    training_batch_size = 20
     training_num_workers = 4
     training_learning_rates = 0.001
     training_max_epochs = 1000
     training_early_stopping_patience = 20
-    transforms = [
-            {'type': 'Resize', 'size': [32, 32]},
-            {'type': 'RandomCrop', 'size': [32, 32], 'padding': 4},
+    train_transforms = [
+        [
+            {'type': 'Resize', 'size': [input_size, input_size]},
+            #{'type': 'RandomCrop', 'size': [input_size, input_size], 'padding': input_size//10},
             {'type': 'ToTensor'},
             {'type': 'Lambda', 'function': 'repeat_channels'},
             {'type': 'RandomHorizontalFlip'},
-            {'type': 'RandomRotation', 'degrees': 30},
-            {'type': 'ColorJitter', 'brightness': 0.2, 'contrast': 0.2,
-             'saturation': 0.2, 'hue': 0.1},
+            {'type': 'RandomRotation', 'degrees': 360},  # 允許任意角度旋轉
+            {'type': 'ColorJitter', 'brightness': 0.4, 'contrast': 0.4,
+             'saturation': 0.4, 'hue': 0.2},
+            {'type': 'GaussianBlur', 'kernel_size': 5, 'sigma': 1.0},  # 加入噪聲的設置
             {'type': 'Normalize', 
-             'mean': [0.4914, 0.4822, 0.4465],
-             'std': [0.2470, 0.2435, 0.2616]}
-        ]
+             'mean': mean,
+             'std': std}
+        ],
+    ]
+    val_transforms = [
+        [
+        {'type': 'Resize', 'size': [input_size, input_size]},
+        {'type': 'ToTensor'},
+        {'type': 'Lambda', 'function': 'repeat_channels'},
+        {'type': 'RandomHorizontalFlip'},
+        {'type': 'RandomRotation', 'degrees': 360},  # 允許任意角度旋轉
+        {'type': 'Normalize', 
+             'mean': mean,
+             'std': std},
+        ],
+    ]
+    test_transforms = [
+        [
+            {'type': 'Resize', 'size': [input_size, input_size]},
+            {'type': 'ToTensor'},
+            {'type': 'Lambda', 'function': 'repeat_channels'},
+            {'type': 'RandomHorizontalFlip'},
+            {'type': 'RandomRotation', 'degrees': 360},  # 允許任意角度旋轉
+            {'type': 'Normalize', 
+                'mean': mean,
+                'std': std},
+        ],
+    ]
     optimizer = [
         {
             'type': 'Adam',
-            'params': {
-                'lr': 0.001,
-            }
-        },
-        {
-            'type': 'SGD',
             'params': {
                 'lr': 0.001,
             }
@@ -247,19 +159,24 @@ if __name__ == '__main__':
     index = 0
     for model in models:
         for opt in optimizer:
-            for sched in scheduler:
-                config_dict = create_default_config(
-                    model, 
-                    training_batch_size, 
-                    training_num_workers, 
-                    training_learning_rates, 
-                    training_max_epochs, 
-                    training_early_stopping_patience, 
-                    transforms, 
-                    opt,
-                    sched,
-                )
-                print(yaml.dump(config_dict, allow_unicode=True, sort_keys=False))
-                generate_train_config(config_dict)
-                index += 1
-        
+            for train_transform in train_transforms:
+                for val_transform in val_transforms:
+                    for test_transform in test_transforms:
+                        for sched in scheduler:
+                            config_dict = create_default_config(
+                                model, 
+                                training_batch_size, 
+                                training_num_workers, 
+                                training_learning_rates, 
+                                training_max_epochs, 
+                                training_early_stopping_patience, 
+                                train_transform, 
+                                val_transform,
+                                test_transform,
+                                opt,
+                                sched,
+                            )
+                            print(yaml.dump(config_dict, allow_unicode=True, sort_keys=False))
+                            generate_train_config(config_dict)
+                            index += 1
+                    

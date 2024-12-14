@@ -1,52 +1,70 @@
 model:
-  name: CNNModelForCIFAR10
+  name: resnet50
   parameters:
     num_classes: 2
-    input_size: 256
-    hidden_layers:
-    - 256
-    - 128
-    - 64
-    activation_function: LeakyReLU
-    dropout_rate: 0.1
-    num_pool_layers: 3
-    conv_start_size: 64
+    weights: DEFAULT
 training:
-  batch_size: 100
+  batch_size: 20
   num_workers: 4
   learning_rate: 0.001
   max_epochs: 1000
   early_stopping_patience: 20
-transforms:
+train_transforms:
 - type: Resize
   size:
-  - 32
-  - 32
-- type: RandomCrop
-  size:
-  - 32
-  - 32
-  padding: 4
+  - 256
+  - 256
 - type: ToTensor
 - type: Lambda
   function: repeat_channels
 - type: RandomHorizontalFlip
 - type: RandomRotation
-  degrees: 30
+  degrees: 360
 - type: ColorJitter
-  brightness: 0.2
-  contrast: 0.2
-  saturation: 0.2
-  hue: 0.1
+  brightness: 0.4
+  contrast: 0.4
+  saturation: 0.4
+  hue: 0.2
+- type: GaussianBlur
+  kernel_size: 5
+  sigma: 1.0
 - type: Normalize
-  mean:
-  - 0.4914
-  - 0.4822
-  - 0.4465
-  std:
-  - 0.247
-  - 0.2435
-  - 0.2616
+  mean: &id001
+  - 0.5551365613937378
+  - 0.5310814380645752
+  - 0.4438391327857971
+  std: &id002
+  - 0.30236372351646423
+  - 0.2883330285549164
+  - 0.22104455530643463
+val_transforms:
+- type: Resize
+  size:
+  - 256
+  - 256
+- type: ToTensor
+- type: Lambda
+  function: repeat_channels
+- type: RandomHorizontalFlip
+- type: RandomRotation
+  degrees: 360
+- type: Normalize
+  mean: *id001
+  std: *id002
+test_transforms:
+- type: Resize
+  size:
+  - 256
+  - 256
+- type: ToTensor
+- type: Lambda
+  function: repeat_channels
+- type: RandomHorizontalFlip
+- type: RandomRotation
+  degrees: 360
+- type: Normalize
+  mean: *id001
+  std: *id002
 optimizer:
   type: Adam
   params:

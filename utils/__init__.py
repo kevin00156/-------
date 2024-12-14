@@ -14,6 +14,7 @@ __all__ = [
     'VGG',
     'CNNModelForCIFAR10',
     'CNNModelForCIFAR100',
+    'ResNet50Model',
     'CoffeeBeanDataset',
     'load_config',
 ]

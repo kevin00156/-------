@@ -4,4 +4,10 @@ lightning_logs/
 utils/__pycache__/
 utils/Datasets/__pycache__/
 utils/Models/__pycache__/
-coffee_bean_dataset/*
+Coffee bean dataset/
+train_configs/
+
+trained_models/
+
+coffee_bean_predict/
+

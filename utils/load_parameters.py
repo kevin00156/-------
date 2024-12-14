@@ -1,3 +1,10 @@
+import sys
+import os
+
+# 將專案根目錄添加到系統路徑
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+
 import yaml
 import torchvision.transforms as transforms
 import torch.nn as nn
@@ -6,7 +13,8 @@ import os
 import importlib
 import inspect
 import torch
-from .Models import *
+from Models import *
+import torchvision.models as models
 
 
 def repeat_channels(x):
@@ -37,13 +45,20 @@ def load_transforms(transforms_config):
             ))
         elif transform['type'] == "Normalize":
             transform_list.append(transforms.Normalize(mean=transform['mean'], std=transform['std']))
+        elif transform['type'] == "GaussianBlur":  # 新增對噪聲的轉換
+            transform_list.append(transforms.GaussianBlur(kernel_size=transform['kernel_size'], sigma=transform['sigma']))
 
     return transforms.Compose(transform_list)
 
-def get_model_classes():
+def get_local_model_classes():
     """顯示可用的模型類型"""
-    models_module = importlib.import_module('.Models', __package__)
+    models_module = importlib.import_module('Models', __package__)
     model_classes = {name: cls for name, cls in inspect.getmembers(models_module, inspect.isclass) if issubclass(cls, nn.Module)}
+    return model_classes
+def get_torchvision_model_classes():
+    """顯示可用的模型類型"""
+    model_classes = {name: cls for name, cls in inspect.getmembers(models, inspect.isclass) if issubclass(cls, nn.Module)}
+    model_classes['resnet50'] = models.resnet50  # 確保 resnet50 被包含在內
     return model_classes
 
 def get_optimizer_classes():
@@ -59,13 +74,26 @@ def get_scheduler_classes():
 
 def load_model(model_name: str, model_parameters: dict):
     """根據模型名稱和參數動態構建模型"""
-    # 使用 get_model_classes 獲取所有模型類
-    model_classes = get_model_classes()
-
-    if model_name in model_classes:
+    local_model_classes = get_local_model_classes()
+    torchvision_model_classes = get_torchvision_model_classes()
+    
+    if model_name in local_model_classes:
         #print(model_classes[model_name])
         #print(model_parameters)
-        return model_classes[model_name](**model_parameters)  # 使用已定義的模型類
+        return local_model_classes[model_name](**model_parameters)  # 使用已定義的模型類
+    elif model_name in torchvision_model_classes:
+        # 對於 torchvision 模型，使用預設的 num_classes
+        if 'num_classes' in model_parameters:
+            original_num_classes = model_parameters['num_classes']
+            model_parameters['num_classes'] = 1000  # 設置為預訓練模型的類別數
+
+        model = torchvision_model_classes[model_name](**model_parameters)
+
+        # 修改最後一層以適應新的類別數
+        if 'num_classes' in model_parameters:
+            model.fc = nn.Linear(model.fc.in_features, original_num_classes)  # 修改最後一層
+
+        return model
     else:
         raise ValueError(f"Unknown model name: {model_name}")
 
@@ -111,8 +139,12 @@ def load_config(config_path: str):
     model = load_model(model_name, model_parameters)  # 使用名稱和參數構建模型
 
     # 加載數據轉換
-    transforms_config = config['transforms']  # 獲取轉換配置
-    preprocess = load_transforms(transforms_config)
+    train_transforms_config = config['train_transforms']  # 獲取轉換配置
+    val_transforms_config = config['val_transforms']  # 獲取轉換配置
+    test_transforms_config = config['test_transforms']  # 獲取轉換配置
+    train_transforms = load_transforms(train_transforms_config)
+    val_transforms = load_transforms(val_transforms_config)
+    test_transforms = load_transforms(test_transforms_config)
 
     # 加載訓練參數
     training_config = config['training']  # 獲取訓練配置
@@ -125,7 +157,7 @@ def load_config(config_path: str):
     }
 
     # 加載優化器
-    optimizer_config = config['optimizer']  # 獲��優化器配置
+    optimizer_config = config['optimizer']  # 獲取優化器配置
     optimizer = load_optimizer(optimizer_config, model)
 
     # 加載學習率調度器（如果有的話）
@@ -134,11 +166,11 @@ def load_config(config_path: str):
         scheduler_config = config['scheduler']  # 獲取調度器配置
         scheduler = load_scheduler(scheduler_config, optimizer)
 
-    return model, preprocess, training_params, optimizer, scheduler
+    return model, train_transforms, val_transforms, test_transforms, training_params, optimizer, scheduler
 
 
 """
-YAML 配置範例：
+YAML 配置��例：
 
 configs:
   model:
@@ -185,9 +217,10 @@ configs:
 
 
 if __name__ == "__main__":
-    print("模型類型：", get_model_classes())
+    print("模型類型：", get_local_model_classes())
+    print("torchvision模型類型：", get_torchvision_model_classes())
     print("優化器類型：", get_optimizer_classes())
-    print("調度器類型：", get_scheduler_classes())
+    print("調���器類型：", get_scheduler_classes())
 
     # 讀取 YAML 檔案
     import yaml
