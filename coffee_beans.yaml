@@ -1,0 +1,12 @@
+# 資料集根目錄
+path: Coffee_bean_dataset_YOLOv11
+
+# 訓練、驗證和測試圖片的相對路徑
+train: images/train
+val: images/val
+test: images/test
+
+# 類別名稱
+names:
+  0: NG
+  1: OK 

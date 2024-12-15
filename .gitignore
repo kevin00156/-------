@@ -8,4 +8,12 @@ Coffee bean dataset/
 
 trained_models/
 
+yolo11n.pt
+yolo11x.pt
 
+coffee_bean_detection_yolo11x/
+coffee_bean_detection_yolo11n/
+coffee_bean_predict/
+runs/
+train_configs/
+datasets/

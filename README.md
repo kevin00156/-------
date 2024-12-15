@@ -40,29 +40,9 @@ TODO：將資料集完整建立，並重新調整過參數
 
 1. **資料預處理**：
 
-   使用 `image_preprocess.py` 來處理影像資料，確保所有影像都已正確儲存並標記。
-   如果不行，請確定咖啡豆的大小閥值，並調整image_preprocess.py中的pixel_threshold_lower和pixel_threshold_upper
-   需要根據相機解析度調整
-
-   ```bash
-   python image_preprocess.py
-   ```
-
-2. **建立資料集**：
-
-   使用 `dataset_creation.py` 來建立資料集。
-
-   ```bash
-   python dataset_creation.py
-   ```
-
-3. **將資料集轉換為PyTorch資料集**：
-
-   使用 `dataset_creation.py` 來將資料集轉換為PyTorch資料集。
-
-   ```bash
-   python dataset_creation.py
-   ```
+   使用 `dataset_preprocess內的功能` 來處理影像資料，確保所有影像都已正確儲存並標記。  
+   詳細參考該資料夾內的 `README.md`
+   
 
 4. **模型訓練**：
 
