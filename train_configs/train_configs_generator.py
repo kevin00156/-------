@@ -79,10 +79,13 @@ def create_default_config(
     }
 if __name__ == '__main__':
     
-    num_classes = 2
-    input_size = 256
-    mean = [0.5551365613937378, 0.5310814380645752, 0.4438391327857971]
-    std = [0.30236372351646423, 0.2883330285549164, 0.22104455530643463]
+    with open('settings.yaml', 'r') as file:
+        settings = yaml.safe_load(file)  # 讀取配置文件
+
+    num_classes = settings['dataset_info']['num_classes']
+    input_size = settings['dataset_info']['input_size']
+    mean = settings['dataset_info']['mean']
+    std = settings['dataset_info']['std']
     models = [
         {'name': 'resnet50',#你可以改成自定義的model，或是pytorch官方的model
          'parameters': {

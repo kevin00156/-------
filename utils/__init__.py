@@ -6,6 +6,8 @@ from .load_parameters import load_config
 from .Models import *
 from .Datasets import *
 
+from .process_coffee_bean import process_coffee_beans
+
 __all__ = [
     'CoffeeBeanDataset',
     'resnet18',
@@ -17,4 +19,5 @@ __all__ = [
     'ResNet50Model',
     'CoffeeBeanDataset',
     'load_config',
+    'process_coffee_beans',
 ]
