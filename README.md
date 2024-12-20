@@ -75,6 +75,16 @@ TODO：將資料集完整建立，並重新調整過參數
    ![大部分是OK的圖片](readme_images/20241209_181803.jpg)
    ![大部分是NG的圖片](readme_images/20241210_153831.jpg)
 
+5. **影片測試**：
+
+   使用 `coffee_bean_video_test.py` 來測試模型在影片中的表現。
+   只要在main函數中，將path改成你要測試的影片路徑，即可測試
+   若使用webcam或local_camera，則更改video_path為網路攝影機地址或0,1,2...等即可使用
+
+   ```bash
+   python coffee_bean_video_test.py
+   ```
+
 ## 貢獻
 
 歡迎對此專案進行貢獻！請提交問題或拉取請求。
