@@ -6,7 +6,7 @@ import shutil
 random.seed(42)
 
 # 資料集路徑
-base_path = "Coffee bean dataset_YOLOv11"
+base_path = "coffee_bean_dataset_pixel7"
 ng_path = os.path.join(base_path, "NG/coffee_beans")
 ok_path = os.path.join(base_path, "OK/coffee_beans")
 

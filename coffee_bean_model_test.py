@@ -4,7 +4,7 @@ import os
 from ultralytics import YOLO
 
 # 載入 YOLOv11 模型
-model = YOLO("coffee_bean_detection_yolo11x/yolov11_training3/weights/best.pt")  # 使用適當的模型權重文件
+model = YOLO("coffee_bean_detection/yolov11_training/weights/best.pt")  # 使用適當的模型權重文件
 
 
 def predict_coffee_bean_yolo(image):
@@ -176,6 +176,7 @@ def main(base_source_path, base_target_path, show_image=False):
         cv2.imwrite(f'{base_target_path}/{file}', img)
 
 if __name__ == "__main__":
-    main("Coffee bean dataset/NG", "coffee_bean_predict/NG", show_image=False)
-    main("Coffee bean dataset/OK", "coffee_bean_predict/OK", show_image=False)
+    #main("Coffee bean dataset/NG", "coffee_bean_predict/NG", show_image=False)
+    #main("Coffee bean dataset/OK", "coffee_bean_predict/OK", show_image=False)
     #test_model("Coffee bean dataset/OK/coffee_beans", show_image=False)
+    main("coffee_bean_test_video", "coffee_bean_predict/Mixed", show_image=False)

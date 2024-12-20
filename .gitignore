@@ -17,3 +17,9 @@ coffee_bean_predict/
 runs/
 train_configs/
 datasets/
+
+coffee_bean_test_video/
+coffee_bean_detection_best/
+coffee_bean_dataset_pixel7/
+
+
