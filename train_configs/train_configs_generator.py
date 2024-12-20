@@ -84,8 +84,12 @@ if __name__ == '__main__':
 
     num_classes = settings['dataset_info']['num_classes']
     input_size = settings['dataset_info']['input_size']
-    mean = settings['dataset_info']['mean']
-    std = settings['dataset_info']['std']
+    mean = settings['dataset_info_merged']['mean']
+    std = settings['dataset_info_merged']['std']
+    mean_val = settings['dataset_info_merged']['mean']
+    std_val = settings['dataset_info_merged']['std']
+    mean_test = settings['dataset_info_merged']['mean']
+    std_test = settings['dataset_info_merged']['std']
     models = [
         {'name': 'resnet50',#你可以改成自定義的model，或是pytorch官方的model
          'parameters': {
@@ -116,15 +120,15 @@ if __name__ == '__main__':
     ]
     val_transforms = [
         [
-        {'type': 'Resize', 'size': [input_size, input_size]},
-        {'type': 'ToTensor'},
-        {'type': 'Lambda', 'function': 'repeat_channels'},
-        {'type': 'RandomHorizontalFlip'},
-        {'type': 'RandomRotation', 'degrees': 360},  # 允許任意角度旋轉
-        {'type': 'Normalize', 
-             'mean': mean,
-             'std': std},
-        ],
+            {'type': 'Resize', 'size': [input_size, input_size]},
+            {'type': 'ToTensor'},
+            {'type': 'Lambda', 'function': 'repeat_channels'},
+            {'type': 'RandomHorizontalFlip'},
+            {'type': 'RandomRotation', 'degrees': 360},  # 允許任意角度旋轉
+            {'type': 'Normalize', 
+                'mean': mean_val,
+                'std': std_val},
+            ],
     ]
     test_transforms = [
         [
@@ -134,8 +138,8 @@ if __name__ == '__main__':
             {'type': 'RandomHorizontalFlip'},
             {'type': 'RandomRotation', 'degrees': 360},  # 允許任意角度旋轉
             {'type': 'Normalize', 
-                'mean': mean,
-                'std': std},
+                'mean': mean_test,
+                'std': std_test},
         ],
     ]
     optimizer = [

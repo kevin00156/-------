@@ -23,6 +23,9 @@ from utils import LightningModel, load_config, CoffeeBeanDataset
 參數定義
 """
 
+with open('settings.yaml', 'r') as file:
+    settings = yaml.safe_load(file)  # 讀取配置文件
+
 model = None
 
 config_path = "train_configs"
@@ -116,28 +119,37 @@ def main(training_config, config_index):
     global model
     train_model, train_transforms, val_transforms, test_transforms, training_params, optimizer, scheduler = training_config
     
-    # 初始化模型和訓練器
-    train_dataset_original = CoffeeBeanDataset(
-        json_file="Coffee bean dataset/dataset.json"
-    )
-    model_label_count = train_dataset_original.get_label_count()
+    dataset_paths = settings['dataset_paths']
+    datasets = [
+        CoffeeBeanDataset(dataset_path) 
+        for dataset_path in dataset_paths]
+    
+    # 合併兩個資料集
+    combined_dataset = torch.utils.data.ConcatDataset(datasets)
+    
+    model_label_count = len(set(label for dataset in combined_dataset.datasets for label in dataset.labels))
     # 計算訓練集和驗證集的大小
-    total_size = len(train_dataset_original)
+    total_size = len(combined_dataset)
     train_size = int(0.8 * total_size)  # 80% 用於訓練
     val_size = int(0.15 * total_size)  # 15% 用於驗證
     test_size = total_size - train_size - val_size  # 剩下的 5% 用於測試
 
-    # 使用 random_split 將數據集分割成訓練集和驗證集
+    # 使用 random_split 將合併後的數據集分割成驗證集和測試集
     train_dataset, val_dataset, test_dataset = torch.utils.data.random_split(
-        train_dataset_original, 
+        combined_dataset, 
         [train_size, val_size, test_size],
         generator=torch.Generator().manual_seed(42)
     )
     
-    # 為每個數據集設置不同的 transform
-    train_dataset.dataset.transform = train_transforms
-    val_dataset.dataset.transform = val_transforms
-    test_dataset.dataset.transform = test_transforms
+    # 為每個子資料集設置transform
+    for dataset in train_dataset.dataset.datasets:
+        dataset.transform = train_transforms
+
+    for dataset in val_dataset.dataset.datasets:
+        dataset.transform = val_transforms
+
+    for dataset in test_dataset.dataset.datasets:
+        dataset.transform = test_transforms
     
     print("初始化完成")
 

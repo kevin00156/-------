@@ -1,6 +1,10 @@
 coffee_bean_pixel_threshold:
-  lower: 5000
-  upper: 25000
+  lower: 500
+  upper: 50000
+
+dataset_paths:
+  - "Coffee bean dataset/dataset.json"
+  - "coffee_bean_dataset_pixel7/dataset.json"
 
 dataset_info:
   num_classes : 2
@@ -8,4 +12,15 @@ dataset_info:
   mean: [0.5551365613937378, 0.5310814380645752, 0.4438391327857971]
   std: [0.30236372351646423, 0.2883330285549164, 0.22104455530643463]
 
+dataset_info_pixel7:
+  num_classes : 2
+  input_size : 256
+  mean: [0.5155684351921082, 0.4637966454029083, 0.35989928245544434]
+  std: [0.3120470345020294, 0.2850710451602936, 0.22121894359588623]
   
+
+dataset_info_merged:
+  num_classes : 2
+  input_size : 256
+  mean: [0.5314157605171204, 0.49074479937553406, 0.3935178518295288]
+  std: [0.30881452560424805, 0.28827348351478577, 0.2249414622783661]

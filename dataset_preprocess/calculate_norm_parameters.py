@@ -33,9 +33,13 @@ def calculate_mean_std(dataset_path: str, batch_size: int = 32, num_workers: int
     ])
     
     # 載入資料集
-    dataset = CoffeeBeanDataset(dataset_path, transform=transform)
-    dataloader = DataLoader(dataset, batch_size=batch_size, num_workers=num_workers)
+    datasets = [
+        CoffeeBeanDataset(dataset_path, transform=transform) 
+        for dataset_path in dataset_paths]
     
+    combined_dataset = torch.utils.data.ConcatDataset(datasets)
+    dataloader = DataLoader(combined_dataset, batch_size=batch_size, num_workers=num_workers)
+        
     # 初始化變數
     mean = 0.
     std = 0.
@@ -61,7 +65,9 @@ def calculate_mean_std(dataset_path: str, batch_size: int = 32, num_workers: int
     return mean.tolist(), std.tolist()
 
 if __name__ == '__main__':
-    dataset_path = "Coffee bean dataset/dataset.json"
-    mean, std = calculate_mean_std(dataset_path)
+    base_paths = ["coffee_bean_dataset_pixel7", "Coffee bean dataset"]
+    dataset_paths = [f"{base_path}/dataset.json" for base_path in base_paths]
+    mean, std = calculate_mean_std(dataset_paths)
     print(f"資料集的平均值: {mean}")
     print(f"資料集的標準差: {std}")
+

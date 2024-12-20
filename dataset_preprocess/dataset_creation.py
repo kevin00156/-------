@@ -22,7 +22,7 @@ def create_dataset_dict(source_folders, output_path):
         json.dump(dataset_dict, f, ensure_ascii=False, indent=4)
 
 # 使用範例
-base_path = "Coffee bean dataset"
+base_path = "coffee_bean_dataset_pixel7"
 source_folders = {
     f"{base_path}/OK/coffee_beans": 'OK',
     f"{base_path}/NG/coffee_beans": 'NG',

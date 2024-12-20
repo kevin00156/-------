@@ -1,6 +1,7 @@
 import json
 from torch.utils.data import Dataset
 from PIL import Image
+from torchvision import transforms
 
 class CoffeeBeanDataset(Dataset):
     def __init__(self, json_file, transform=None):
@@ -26,6 +27,14 @@ class CoffeeBeanDataset(Dataset):
         # 如果有提供轉換，則應用轉換
         if self.transform:
             image = self.transform(image)
+        else:
+            print("資料集沒有提供transform")
+            # 如果沒有transform，至少要將圖像轉換為張量
+            transform = transforms.Compose([
+                transforms.ToTensor(),
+            ])
+            image = transform(image)
+    
 
         # 將標籤轉換為數字
         label = 1 if label == "OK" else 0

@@ -15,7 +15,7 @@ with open('settings.yaml', 'r') as file:
 
 
 # 加載 ResNet50 模型
-model = ResNet50Model.load_from_checkpoint('trained_models/resnet50.ckpt')  # 從檢查點加載訓練後的模型
+model = ResNet50Model.load_from_checkpoint('trained_models/resnet50_merged.ckpt')  # 從檢查點加載訓練後的模型
 model.eval()  # 設置模型為評估模式
 
 def repeat_channels(x):
@@ -29,8 +29,8 @@ transform = transforms.Compose([
     transforms.ToTensor(),  # 將PIL圖像轉換為張量
     transforms.Lambda(repeat_channels),  # 應用重複通道的函數
     transforms.Normalize(  # 對圖像進行標準化
-        mean=settings['dataset_info']['mean'],  # 計算的均值
-        std=settings['dataset_info']['std']  # 計算的標準差
+        mean=settings['dataset_info_merged']['mean'],  # 計算的均值
+        std=settings['dataset_info_merged']['std']  # 計算的標準差
     ),
 ])
 
@@ -150,11 +150,53 @@ def test_model_from_original_images(base_source_path, base_target_path, show_ima
         print(f"process_and_predict 執行時間: {execution_times[-1]} 秒")  # 印出執行時間
         cv2.imwrite(f'{base_target_path}/{file}', img)  # 保存處理後的圖像
 
+
+def test_model_from_video_frames(video_path, show_image=False):
+    
+    pixel_threshold_lower = settings['coffee_bean_pixel_threshold']['lower']  # 獲取像素下限
+    pixel_threshold_upper = settings['coffee_bean_pixel_threshold']['upper']  # 獲取像素上限
+
+    cap = cv2.VideoCapture(video_path)  # 開啟視頻捕獲對象
+    frame_count = 0
+    while True:
+        ret, frame = cap.read()  # 讀取視頻幀
+        if not ret:  # 如果無法讀取視頻幀，則跳出迴圈
+            break
+        frame_count += 1
+        if frame_count % 10 != 0:
+            continue
+        if frame.shape[0] > frame.shape[1]:  # 如果高度大於寬度，則旋轉圖像
+            frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)  # 旋轉90度
+        execution_times = []  # 用於儲存執行時間的列表
+        start_process_time = time.time()  # 記錄開始時間
+        result = process_and_predict(
+            image=frame,  # 輸入圖像
+            show_image=show_image,  # 是否顯示圖像
+            pixel_threshold_lower=pixel_threshold_lower,  # 像素下限
+            pixel_threshold_upper=pixel_threshold_upper  # 像素上限
+        )
+        new_frame = cv2.add(frame, result)  #合成僅有框的圖片與原始圖片
+        height, width = new_frame.shape[:2]  # 獲取新幀的高度和寬度
+        new_width = 1024  # 設定新的寬度
+        new_height = int((new_width / width) * height)  # 根據比例計算新的高度
+        new_frame = cv2.resize(new_frame, (new_width, new_height))  # 調整新幀的大小
+        cv2.imshow('Coffee Beans', new_frame)  # 顯示咖啡豆圖像
+        if cv2.waitKey(1) & 0xFF == ord('q'):  # 按 'q' 鍵退出播放
+            break
+        end_process_time = time.time()  # 記錄結束時間
+        execution_times.append(end_process_time - start_process_time)  # 將執行時間放入列表
+        print(f"process_and_predict 執行時間: {execution_times[-1]} 秒")  # 印出執行時間
+
+    cap.release()  # 釋放視頻捕獲對象
+    cv2.destroyAllWindows()  # 關閉所有視窗
+
 if __name__ == "__main__":
     import time  # 確保導入time模組
     start_time = time.time()  # 記錄開始時間
-    test_model_from_original_images("Coffee bean dataset/NG", "coffee_bean_predict/NG", show_image=False)  # 處理NG類別的咖啡豆圖像
-    test_model_from_original_images("Coffee bean dataset/OK", "coffee_bean_predict/OK", show_image=False)  # 處理OK類別的咖啡豆圖像
+    #test_model_from_original_images("coffee_bean_dataset_pixel7/NG", "coffee_bean_predict/NG", show_image=False)  # 處理NG類別的咖啡豆圖像
+    #test_model_from_original_images("coffee_bean_dataset_pixel7/OK", "coffee_bean_predict/OK", show_image=False)  # 處理OK類別的咖啡豆圖像
+    test_model_from_original_images("coffee_bean_test_video", "coffee_bean_predict/Mixed", show_image=False)  # 處理OK類別的咖啡豆圖像
+    #test_model_from_video_frames("coffee_bean_test_video/PXL_20241216_163729711.mp4", show_image=False)
     end_time = time.time()  # 記錄結束時間
     print(f"執行時間: {end_time - start_time} 秒")  # 印出執行時間
     #test_model_from_dataset("Coffee bean dataset/OK/coffee_beans", show_image=False)  # 可選：測試模型

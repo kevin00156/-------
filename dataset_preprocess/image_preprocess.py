@@ -2,12 +2,18 @@ import cv2
 import numpy as np
 import glob
 import os
+import yaml
 
 """
 這支程式是用來處理影像的
 這支程式會將原始影像的每個咖啡豆都逐個摳下來，並且儲存成單獨的影像
 你可以在coffee_bean_dataset/OK/result中看到框出咖啡豆的影像，在coffee_bean_dataset/OK/coffee_beans中看到摳下的咖啡豆影像
 """
+
+with open('settings.yaml', 'r') as file:
+    settings = yaml.safe_load(file)  # 讀取配置文件
+pixel_threshold_lower = settings['coffee_bean_pixel_threshold']['lower']  # 獲取像素下限
+pixel_threshold_upper = settings['coffee_bean_pixel_threshold']['upper']  # 獲取像素上限
 
 def save_image(image_folder, image, namespace):
     if not os.path.exists(image_folder):
@@ -129,20 +135,20 @@ def main(original_image_folder, processed_image_folder, coffee_beans_image_folde
             cv2.destroyAllWindows()
         
 if __name__ == '__main__':  
-    base_path = "Coffee bean dataset"
+    base_path = "coffee_bean_dataset_pixel7"
     main(
         original_image_folder=f"{base_path}/OK", 
         processed_image_folder=f"{base_path}/OK/result", 
         coffee_beans_image_folder=f"{base_path}/OK/coffee_beans", 
         show_image=False, 
-        pixel_threshold_lower=5000, 
-        pixel_threshold_upper=50000
+        pixel_threshold_lower=pixel_threshold_lower, 
+        pixel_threshold_upper=pixel_threshold_upper
     )
     main(
         original_image_folder=f"{base_path}/NG", 
         processed_image_folder=f"{base_path}/NG/result", 
         coffee_beans_image_folder=f"{base_path}/NG/coffee_beans", 
         show_image=False, 
-        pixel_threshold_lower=5000, 
-        pixel_threshold_upper=50000
+        pixel_threshold_lower=pixel_threshold_lower, 
+        pixel_threshold_upper=pixel_threshold_upper
     )

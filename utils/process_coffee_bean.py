@@ -22,6 +22,8 @@ def process_coffee_beans(
         pixel_threshold_lower=5000, 
         pixel_threshold_upper=25000
     ):
+    if image is None or image.size == 0:
+        raise ValueError("輸入的圖像無效，請檢查圖像是否正確加載。")
     # 處理咖啡豆圖像，並返回處理結果和擴展的咖啡豆區域
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)  # 轉換為灰度圖
     if show_image:
