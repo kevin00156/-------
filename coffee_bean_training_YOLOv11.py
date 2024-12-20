@@ -7,29 +7,30 @@ import torch
 # 設定基礎路徑
 base_path = "Coffee_bean_dataset_YOLOv11"
 
-def main(train = False):
+def main(train = True):
     # 初始化 YOLOv11 模型
-    model = YOLO('coffee_bean_detection/yolov11_training10/weights/best.pt')  
+    model = YOLO('coffee_bean_detection/yolov11_training3/weights/best.pt')  
 
-    # 訓練參數設定
-    training_args = {
-        'data': 'coffee_beans.yaml',  # 您需要創建這個配置文件
-        'epochs': 200,
-        'imgsz': 640,
-        'batch': 16,
-        'device': 0 if torch.cuda.is_available() else 'cpu',
-        'workers': 8,
-        'patience': 20,
-        'project': 'coffee_bean_detection',
-        'name': 'yolov11_training'
-    }
+    if train == True:
+        # 訓練參數設定
+        training_args = {
+            'data': 'coffee_beans.yaml',  # 您需要創建這個配置文件
+            'epochs': 500,
+            'imgsz': 512,
+            'batch': 32,
+            'device': 0 if torch.cuda.is_available() else 'cpu',
+            'workers': 8,
+            'patience': 100,
+            'project': 'coffee_bean_detection',
+            'name': 'yolov11_training'
+        }
 
-    # 開始訓練
-    try:
-        results = model.train(**training_args)
-    except KeyboardInterrupt:
-        print("訓練過程手動中斷")
-        return
+        # 開始訓練
+        try:
+            results = model.train(**training_args)
+        except KeyboardInterrupt:
+            print("訓練過程手動中斷")
+            return
 
     # 驗證模型
     model.val()
