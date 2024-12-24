@@ -36,10 +36,6 @@ class CNNModel(nn.Module):
             conv_layers_list.append(self.activation_function)
             if using_batch_norm:
                 conv_layers_list.append(nn.BatchNorm2d(conv_size))
-            conv_layers_list.append(nn.Conv2d(conv_size, conv_size, kernel_size=3, stride=1, padding=1))
-            conv_layers_list.append(self.activation_function)
-            if using_batch_norm:
-                conv_layers_list.append(nn.BatchNorm2d(conv_size))
             conv_layers_list.append(nn.MaxPool2d(kernel_size=2, stride=2))
             prev_size = conv_size
             conv_layers_list.append(nn.Dropout(p=dropout_rate))

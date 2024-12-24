@@ -73,6 +73,7 @@ log.setLevel(logging.ERROR)
 
 app.layout = html.Div([
     dcc.Graph(id='train-loss-graph'),
+    dcc.Graph(id='train-acc-graph'),
     dcc.Graph(id='val-loss-graph'),
     dcc.Graph(id='val-acc-graph'),
     dcc.Interval(
@@ -84,6 +85,7 @@ app.layout = html.Div([
 
 @app.callback(
     [Output('train-loss-graph', 'figure'),
+     Output('train-acc-graph', 'figure'),
      Output('val-loss-graph', 'figure'),
      Output('val-acc-graph', 'figure')],
     [Input('interval-component', 'n_intervals')]
@@ -93,6 +95,12 @@ def update_graphs(n):
     train_loss_fig = go.Figure()
     train_loss_fig.add_trace(go.Scatter(x=list(range(len(model.train_losses))), y=model.train_losses, mode='lines+markers', name='Train Loss'))
     train_loss_fig.update_layout(title='Train Loss', xaxis_title='Epoch', yaxis_title='Loss')
+
+    # Train Accuracy Plot
+    train_acc_fig = go.Figure()
+    train_acc_values = [model.trainer.callback_metrics['train_acc'].item() for _ in range(len(model.train_losses))]
+    train_acc_fig.add_trace(go.Scatter(x=list(range(len(train_acc_values))), y=train_acc_values, mode='lines+markers', name='Train Accuracy', line=dict(color='red')))
+    train_acc_fig.update_layout(title='Training Accuracy', xaxis_title='Epoch', yaxis_title='Accuracy')
 
     # Validation Loss Plot
     val_loss_fig = go.Figure()
@@ -104,7 +112,7 @@ def update_graphs(n):
     val_acc_fig.add_trace(go.Scatter(x=list(range(len(model.val_accs))), y=model.val_accs, mode='lines+markers', name='Val Accuracy', line=dict(color='green')))
     val_acc_fig.update_layout(title='Validation Accuracy', xaxis_title='Epoch', yaxis_title='Accuracy')
 
-    return train_loss_fig, val_loss_fig, val_acc_fig
+    return train_loss_fig, train_acc_fig, val_loss_fig, val_acc_fig
 
 def run_dash():
     app.run_server(debug=False, use_reloader=False)
