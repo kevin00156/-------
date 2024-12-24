@@ -12,8 +12,6 @@ from dash.dependencies import Input, Output
 import plotly.graph_objs as go
 import threading
 import logging
-import numpy as np
-import torchvision
 import yaml
 from typing import Dict, Any
 

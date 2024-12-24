@@ -91,10 +91,27 @@ if __name__ == '__main__':
     mean_test = settings['dataset_info_merged']['mean']
     std_test = settings['dataset_info_merged']['std']
     models = [
-        {'name': 'resnet50',#你可以改成自定義的model，或是pytorch官方的model
+        {'name': 'VGG_Pretrained',#你可以改成自定義的model，或是pytorch官方的model
          'parameters': {
+             'model_name': 'vgg16',
              'num_classes': num_classes,
              'weights': 'DEFAULT'
+             }},
+        {'name': 'ResNet50Model',#你可以改成自定義的model，或是pytorch官方的model
+         'parameters': {
+             'model_name': 'resnet50',
+             'num_classes': num_classes,
+             'weights': 'DEFAULT'
+             }},
+        {'name': 'CNNModel',#你可以改成自定義的model，或是pytorch官方的model
+         'parameters': {
+             'input_size': input_size,
+             'num_classes': num_classes,
+             'hidden_layers': [512, 256, 128, 64],
+             'activation_function': 'LeakyReLU',
+             'dropout_rate': 0.3,
+             'conv_layers': [128, 256, 512, 512],
+             'using_batch_norm': True
              }},
     ]
     training_batch_size = 20
@@ -108,11 +125,14 @@ if __name__ == '__main__':
             #{'type': 'RandomCrop', 'size': [input_size, input_size], 'padding': input_size//10},
             {'type': 'ToTensor'},
             {'type': 'Lambda', 'function': 'repeat_channels'},
-            {'type': 'RandomHorizontalFlip'},
-            {'type': 'RandomRotation', 'degrees': 360},  # 允許任意角度旋轉
-            {'type': 'ColorJitter', 'brightness': 0.4, 'contrast': 0.4,
-             'saturation': 0.4, 'hue': 0.2},
-            {'type': 'GaussianBlur', 'kernel_size': 5, 'sigma': 1.0},  # 加入噪聲的設置
+            {'type': 'RandomHorizontalFlip', 'p': 0.5},
+            {'type': 'RandomVerticalFlip', 'p': 0.5},
+            {'type': 'RandomRotation', 'degrees': 360, 'p': 0.5},  # 允許任意角度旋轉
+            {'type': 'RandomPerspective', 'distortion_scale': 0.5, 'p': 0.5},
+            {'type': 'RandomAffine', 'degrees': 360, 'translate': 0.2, 'scale': 0.2, 'shear': 10, 'p': 0.5},
+            {'type': 'ColorJitter', 'brightness': 0.3, 'contrast': 0.3,
+             'saturation': 0.3, 'hue': 0.2, 'p': 0.5},
+            {'type': 'GaussianBlur', 'kernel_size': 5, 'sigma': 1.0, 'p': 0.5},  # 加入噪聲的設置
             {'type': 'Normalize', 
              'mean': mean,
              'std': std}
@@ -123,8 +143,6 @@ if __name__ == '__main__':
             {'type': 'Resize', 'size': [input_size, input_size]},
             {'type': 'ToTensor'},
             {'type': 'Lambda', 'function': 'repeat_channels'},
-            {'type': 'RandomHorizontalFlip'},
-            {'type': 'RandomRotation', 'degrees': 360},  # 允許任意角度旋轉
             {'type': 'Normalize', 
                 'mean': mean_val,
                 'std': std_val},
@@ -135,8 +153,6 @@ if __name__ == '__main__':
             {'type': 'Resize', 'size': [input_size, input_size]},
             {'type': 'ToTensor'},
             {'type': 'Lambda', 'function': 'repeat_channels'},
-            {'type': 'RandomHorizontalFlip'},
-            {'type': 'RandomRotation', 'degrees': 360},  # 允許任意角度旋轉
             {'type': 'Normalize', 
                 'mean': mean_test,
                 'std': std_test},
@@ -144,9 +160,10 @@ if __name__ == '__main__':
     ]
     optimizer = [
         {
-            'type': 'Adam',
+            'type': 'AdamW',
             'params': {
-                'lr': 0.001,
+                'lr': 0.00005,
+                'weight_decay': 0.0001,
             }
         },
     ]
