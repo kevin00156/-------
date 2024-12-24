@@ -52,6 +52,10 @@ class LightningModel(pl.LightningModule):
         loss = nn.CrossEntropyLoss()(logits, y)
         self.log('train_loss', loss, prog_bar=True)
         
+        # 記錄準確度
+        acc = self.accuracy(logits, y)
+        self.log('train_acc', acc, prog_bar=True)  # 新增：記錄訓練準確度
+        
         # 記錄學習率
         current_lr = self.optimizers().param_groups[0]['lr']
         self.log('learning_rate', current_lr)
@@ -88,6 +92,10 @@ class LightningModel(pl.LightningModule):
     def on_train_epoch_end(self):
         avg_loss = self.trainer.callback_metrics['train_loss'].item()
         self.train_losses.append(avg_loss)
+
+        # 新增���計算並記錄訓練準確度
+        avg_train_acc = self.trainer.callback_metrics['train_acc'].item()
+        self.log('hp_metric/train_acc', avg_train_acc, on_epoch=True, on_step=False)
 
     def on_validation_epoch_end(self):
         avg_val_loss = self.trainer.callback_metrics.get('val_loss', None)
