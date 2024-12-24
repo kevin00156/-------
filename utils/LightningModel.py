@@ -159,7 +159,7 @@ class LightningModel(pl.LightningModule):
             title (str, optional): 圖表標題
         
         Returns:
-            torch.Tensor: 可用於 TensorBoard 的圖像張量
+            tuple: 包含兩個 torch.Tensor，分別是原始混淆矩陣和標準化混淆矩陣的圖像張量
         """
         # 將 PyTorch 張量轉換為 NumPy 數組
         true_labels = true_labels.cpu().numpy()
@@ -167,34 +167,46 @@ class LightningModel(pl.LightningModule):
         
         # 計算混淆矩陣
         cm = confusion_matrix(true_labels, predicted_labels)
+        
+        # 原始混淆矩陣圖像
+        plt.figure(figsize=(12, 10))
+        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
+                    xticklabels=class_names if class_names is not None else range(cm.shape[1]),
+                    yticklabels=class_names if class_names is not None else range(cm.shape[0]))
+        plt.title(f'{title} (Raw)')
+        plt.xlabel('predicted_labels')
+        plt.ylabel('true_labels')
+        plt.tight_layout()
+        
+        # 將原始混淆矩陣圖像轉換為張量
+        buf = io.BytesIO()
+        plt.savefig(buf, format='png')
+        buf.seek(0)
+        image_raw = Image.open(buf)
+        transform = transforms.ToTensor()
+        image_tensor_raw = transform(image_raw)
+        plt.close()
 
         # 標準化混淆矩陣
-        cm_normalized = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]  # 每一行標準化
-
-        # 設置圖形大小
+        cm_normalized = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+        
+        # 標準化混淆矩陣圖像
         plt.figure(figsize=(12, 10))
-
-        # 使用 seaborn 繪製標準化的混淆矩陣
-        sns.heatmap(cm_normalized, annot=True, fmt='.2f', cmap='Blues', 
-                    xticklabels=class_names if class_names is not None else range(cm.shape[1]), 
+        sns.heatmap(cm_normalized, annot=True, fmt='.2f', cmap='Blues',
+                    xticklabels=class_names if class_names is not None else range(cm.shape[1]),
                     yticklabels=class_names if class_names is not None else range(cm.shape[0]))
-
-        plt.title(title)
+        plt.title(f'{title} (Normalized)')
         plt.xlabel('predicted_labels')
         plt.ylabel('true_labels')
         plt.tight_layout()
 
-        # 將圖像轉換為 TensorBoard 可用的格式
+        # 將標準化混淆矩陣圖像轉換為張量
         buf = io.BytesIO()
         plt.savefig(buf, format='png')
         buf.seek(0)
-        
-        # 使用 PIL 和 torchvision 轉換
-        image = Image.open(buf)
-        transform = transforms.ToTensor()
-        image_tensor = transform(image)
+        image_norm = Image.open(buf)
+        image_tensor_norm = transform(image_norm)
         
         plt.close('all')  # 關閉所有 matplotlib 圖形
         
-        return image_tensor
-        
+        return image_tensor_raw, image_tensor_norm
