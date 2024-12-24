@@ -10,6 +10,7 @@ from PIL import Image
 import torchvision.transforms as transforms
 from sklearn.metrics import confusion_matrix
 import matplotlib
+import numpy as np
 matplotlib.use('Agg')  # 使用非 GUI 後端
 
 class LightningModel(pl.LightningModule):
@@ -124,6 +125,10 @@ class LightningModel(pl.LightningModule):
             else:
                 print("警告: true_labels 或 pred_labels 為 None")
 
+        # 清除上一個 epoch 的數據
+        self.val_true_labels.clear()
+        self.val_pred_labels.clear()
+
     def test_step(self, batch, batch_idx):
         x, y = batch
         logits = self(x)
@@ -152,17 +157,17 @@ class LightningModel(pl.LightningModule):
         true_labels = true_labels.cpu().numpy()
         predicted_labels = predicted_labels.cpu().numpy()
         
-        #print(f"true_labels={true_labels}")
-        #print(f"predicted_labels={predicted_labels}")
-        
         # 計算混淆矩陣
         cm = confusion_matrix(true_labels, predicted_labels)
+
+        # 標準化混淆矩陣
+        cm_normalized = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]  # 每一行標準化
 
         # 設置圖形大小
         plt.figure(figsize=(12, 10))
 
-        # 使用 seaborn 繪製混淆矩陣
-        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', 
+        # 使用 seaborn 繪製標準化的混淆矩陣
+        sns.heatmap(cm_normalized, annot=True, fmt='.2f', cmap='Blues', 
                     xticklabels=class_names if class_names is not None else range(cm.shape[1]), 
                     yticklabels=class_names if class_names is not None else range(cm.shape[0]))
 

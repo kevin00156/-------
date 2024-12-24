@@ -1,6 +1,7 @@
 model:
-  name: resnet50
+  name: VGG_Pretrained
   parameters:
+    model_name: vgg16
     num_classes: 2
     weights: DEFAULT
 training:
@@ -18,16 +19,31 @@ train_transforms:
 - type: Lambda
   function: repeat_channels
 - type: RandomHorizontalFlip
+  p: 0.5
+- type: RandomVerticalFlip
+  p: 0.5
 - type: RandomRotation
   degrees: 360
+  p: 0.5
+- type: RandomPerspective
+  distortion_scale: 0.5
+  p: 0.5
+- type: RandomAffine
+  degrees: 360
+  translate: 0.2
+  scale: 0.2
+  shear: 10
+  p: 0.5
 - type: ColorJitter
-  brightness: 0.4
-  contrast: 0.4
-  saturation: 0.4
+  brightness: 0.3
+  contrast: 0.3
+  saturation: 0.3
   hue: 0.2
+  p: 0.5
 - type: GaussianBlur
   kernel_size: 5
   sigma: 1.0
+  p: 0.5
 - type: Normalize
   mean: &id001
   - 0.5314157605171204
@@ -45,9 +61,6 @@ val_transforms:
 - type: ToTensor
 - type: Lambda
   function: repeat_channels
-- type: RandomHorizontalFlip
-- type: RandomRotation
-  degrees: 360
 - type: Normalize
   mean: *id001
   std: *id002
@@ -59,16 +72,14 @@ test_transforms:
 - type: ToTensor
 - type: Lambda
   function: repeat_channels
-- type: RandomHorizontalFlip
-- type: RandomRotation
-  degrees: 360
 - type: Normalize
   mean: *id001
   std: *id002
 optimizer:
-  type: Adam
+  type: AdamW
   params:
-    lr: 0.001
+    lr: 5.0e-05
+    weight_decay: 0.0001
 scheduler:
   type: ReduceLROnPlateau
   params:
