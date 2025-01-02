@@ -1,18 +1,20 @@
 model:
-  name: CNNModel_Lin
+  name: ResNetModel
   parameters:
+    model_name: resnet50
     num_classes: 2
+    weights: DEFAULT
 training:
-  batch_size: 32
-  num_workers: 4
+  batch_size: 10
+  num_workers: 6
   learning_rate: 0.001
   max_epochs: 1000
   early_stopping_patience: 100
 train_transforms:
 - type: Resize
   size:
-  - 256
-  - 256
+  - 224
+  - 224
 - type: ToTensor
 - type: Lambda
   function: repeat_channels
@@ -74,11 +76,14 @@ test_transforms:
   mean: *id001
   std: *id002
 optimizer:
-  type: SGD
+  type: AdamW
   params:
-    lr: 0.001
+    lr: 5.0e-05
+    weight_decay: 0.0001
 scheduler:
-  type: StepLR
+  type: ReduceLROnPlateau
   params:
-    step_size: 5
-    gamma: 0.75
+    mode: min
+    factor: 0.1
+    patience: 10
+    min_lr: 1.0e-08

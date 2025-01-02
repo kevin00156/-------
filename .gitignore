@@ -6,7 +6,7 @@ utils/Datasets/__pycache__/
 utils/Models/__pycache__/
 utils/Models/utils/__pycache__/
 Coffee bean dataset/
-train_configs/
+#train_configs/
 
 trained_models/
 

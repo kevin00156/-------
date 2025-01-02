@@ -91,27 +91,15 @@ if __name__ == '__main__':
     mean_test = settings['dataset_info_merged']['mean']
     std_test = settings['dataset_info_merged']['std']
     models = [
-        {'name': 'ResNet50Model',#你可以改成自定義的model，或是pytorch官方的model
+        {'name': 'ResNetModel',#你可以改成自定義的model，或是pytorch官方的model
          'parameters': {
-             'model_name': 'resnext101_32x8d',
+             'model_name': 'resnet50',
              'num_classes': num_classes,
              'weights': 'DEFAULT'
              }},
-        {'name': 'ResNet50Model',#你可以改成自定義的model，或是pytorch官方的model
+        {'name': 'ResNetModel',#你可以改成自定義的model，或是pytorch官方的model
          'parameters': {
-             'model_name': 'resnext50_32x4d',
-             'num_classes': num_classes,
-             'weights': 'DEFAULT'
-             }},
-        {'name': 'ResNet50Model',#你可以改成自定義的model，或是pytorch官方的model
-         'parameters': {
-             'model_name': 'resnet101',
-             'num_classes': num_classes,
-             'weights': 'DEFAULT'
-             }},
-        {'name': 'ResNet50Model',#你可以改成自定義的model，或是pytorch官方的model
-         'parameters': {
-             'model_name': 'wide_resnet50_2',
+             'model_name': 'resnet50',
              'num_classes': num_classes,
              'weights': 'DEFAULT'
              }},

@@ -17,6 +17,7 @@ __all__ = [
     'VGG_Pretrained',
     'ResNetModel',
     'CNNModel',
+    'CNNModel_Lin',
     'CoffeeBeanDataset',
     'load_config',
     'process_coffee_beans',
