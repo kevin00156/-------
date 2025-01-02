@@ -16,8 +16,6 @@ __all__ = [
     'VGG',
     'VGG_Pretrained',
     'ResNetModel',
-    'ResNet50Model',
-    'ResNet101Model',
     'CNNModel',
     'CoffeeBeanDataset',
     'load_config',
