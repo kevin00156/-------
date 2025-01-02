@@ -98,8 +98,7 @@ def update_graphs(n):
 
     # Train Accuracy Plot
     train_acc_fig = go.Figure()
-    train_acc_values = [model.trainer.callback_metrics['train_acc'].item() for _ in range(len(model.train_losses))]
-    train_acc_fig.add_trace(go.Scatter(x=list(range(len(train_acc_values))), y=train_acc_values, mode='lines+markers', name='Train Accuracy', line=dict(color='red')))
+    train_acc_fig.add_trace(go.Scatter(x=list(range(len(model.train_acc))), y=model.train_acc, mode='lines+markers', name='Train Accuracy', line=dict(color='red')))
     train_acc_fig.update_layout(title='Training Accuracy', xaxis_title='Epoch', yaxis_title='Accuracy')
 
     # Validation Loss Plot

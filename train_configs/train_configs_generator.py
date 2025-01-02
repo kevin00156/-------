@@ -91,38 +91,39 @@ if __name__ == '__main__':
     mean_test = settings['dataset_info_merged']['mean']
     std_test = settings['dataset_info_merged']['std']
     models = [
-        {'name': 'VGG_Pretrained',#你可以改成自定義的model，或是pytorch官方的model
+        {'name': 'ResNet50Model',#你可以改成自定義的model，或是pytorch官方的model
          'parameters': {
-             'model_name': 'vgg16',
+             'model_name': 'resnext101_32x8d',
              'num_classes': num_classes,
              'weights': 'DEFAULT'
              }},
         {'name': 'ResNet50Model',#你可以改成自定義的model，或是pytorch官方的model
          'parameters': {
-             'model_name': 'resnet50',
+             'model_name': 'resnext50_32x4d',
              'num_classes': num_classes,
              'weights': 'DEFAULT'
              }},
-        {'name': 'CNNModel',#你可以改成自定義的model，或是pytorch官方的model
+        {'name': 'ResNet50Model',#你可以改成自定義的model，或是pytorch官方的model
          'parameters': {
-             'input_size': input_size,
+             'model_name': 'resnet101',
              'num_classes': num_classes,
-             'hidden_layers': [512, 256, 128, 64],
-             'activation_function': 'LeakyReLU',
-             'dropout_rate': 0.3,
-             'conv_layers': [128, 256, 512, 512],
-             'using_batch_norm': True
+             'weights': 'DEFAULT'
+             }},
+        {'name': 'ResNet50Model',#你可以改成自定義的model，或是pytorch官方的model
+         'parameters': {
+             'model_name': 'wide_resnet50_2',
+             'num_classes': num_classes,
+             'weights': 'DEFAULT'
              }},
     ]
-    training_batch_size = 20
-    training_num_workers = 4
+    training_batch_size = 10
+    training_num_workers = 6
     training_learning_rates = 0.001
     training_max_epochs = 1000
-    training_early_stopping_patience = 20
+    training_early_stopping_patience = 100
     train_transforms = [
         [
             {'type': 'Resize', 'size': [input_size, input_size]},
-            #{'type': 'RandomCrop', 'size': [input_size, input_size], 'padding': input_size//10},
             {'type': 'ToTensor'},
             {'type': 'Lambda', 'function': 'repeat_channels'},
             {'type': 'RandomHorizontalFlip', 'p': 0.5},

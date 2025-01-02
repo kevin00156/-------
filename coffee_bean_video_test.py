@@ -5,7 +5,7 @@ import time
 import yaml
 import torch
 import torchvision.transforms as transforms
-from utils import process_coffee_beans, repeat_channels, ResNet50Model
+from utils import process_coffee_beans, repeat_channels, ResNet101Model, ResNet50Model, ResNetModel
 from PIL import Image
 
 """
@@ -20,7 +20,7 @@ with open('settings.yaml', 'r') as file:
 pixel_threshold_lower = settings['coffee_bean_pixel_threshold']['lower']  # 獲取像素下限
 pixel_threshold_upper = settings['coffee_bean_pixel_threshold']['upper']  # 獲取像素上限
 # 加載 ResNet50 模型
-model = ResNet50Model.load_from_checkpoint('trained_models/resnet50_merged.ckpt')  # 從檢查點加載訓練後的模型
+model = ResNetModel.load_model_from_ckpt('trained_models/resnet50.ckpt')
 model.eval()  # 設置模型為評估模式
 input_size = settings['dataset_info']['input_size']
 transform = transforms.Compose([
