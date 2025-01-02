@@ -1,15 +1,15 @@
 model:
-  name: VGG_Pretrained
+  name: ResNet50Model
   parameters:
-    model_name: vgg16
+    model_name: resnext101_32x8d
     num_classes: 2
     weights: DEFAULT
 training:
-  batch_size: 20
-  num_workers: 4
+  batch_size: 10
+  num_workers: 6
   learning_rate: 0.001
   max_epochs: 1000
-  early_stopping_patience: 20
+  early_stopping_patience: 100
 train_transforms:
 - type: Resize
   size:

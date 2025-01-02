@@ -35,6 +35,7 @@ class LightningModel(pl.LightningModule):
         self.save_hyperparameters(ignore=['model'])
         
         # 新增列表來儲存損失和準確度
+        self.train_acc = []
         self.train_losses = []
         self.val_losses = []
         self.val_accs = []
@@ -93,9 +94,12 @@ class LightningModel(pl.LightningModule):
         avg_loss = self.trainer.callback_metrics['train_loss'].item()
         self.train_losses.append(avg_loss)
 
-        # 新增���計算並記錄訓練準確度
+        # 新增：計算並記錄訓練準確度
         avg_train_acc = self.trainer.callback_metrics['train_acc'].item()
         self.log('hp_metric/train_acc', avg_train_acc, on_epoch=True, on_step=False)
+
+        # 紀錄每次 epoch 後的訓練準確度
+        self.train_acc.append(avg_train_acc)  # 新增：紀錄訓練準確度
 
     def on_validation_epoch_end(self):
         avg_val_loss = self.trainer.callback_metrics.get('val_loss', None)
@@ -121,7 +125,7 @@ class LightningModel(pl.LightningModule):
             # 確保 true_labels 和 pred_labels 不是 None
             if true_labels is not None and pred_labels is not None:
                 # 生成混淆矩陣
-                confusion_matrix_image = self.get_confusion_matrix_image(true_labels, pred_labels)
+                confusion_matrix_image, _ = self.get_confusion_matrix_image(true_labels, pred_labels)  # 只取原始混淆矩陣
                 
                 # 檢查圖像是否成功生成
                 if confusion_matrix_image is not None and self.logger is not None:
@@ -168,19 +172,25 @@ class LightningModel(pl.LightningModule):
         # 計算混淆矩陣
         cm = confusion_matrix(true_labels, predicted_labels)
         
+        # 設置字體大小
+        plt.rcParams.update({'font.size': 14})  # 增加全局字體大小
+        
         # 原始混淆矩陣圖像
         plt.figure(figsize=(12, 10))
         sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
                     xticklabels=class_names if class_names is not None else range(cm.shape[1]),
-                    yticklabels=class_names if class_names is not None else range(cm.shape[0]))
-        plt.title(f'{title} (Raw)')
-        plt.xlabel('predicted_labels')
-        plt.ylabel('true_labels')
+                    yticklabels=class_names if class_names is not None else range(cm.shape[0]),
+                    annot_kws={'size': 16})  # 設置熱力圖中數字的字體大小
+        plt.title(f'{title} (Raw)', fontsize=18)  # 設置標題字體大小
+        plt.xlabel('predicted_labels', fontsize=16)  # 設置x軸標籤字體大小
+        plt.ylabel('true_labels', fontsize=16)  # 設置y軸標籤字體大小
+        plt.xticks(fontsize=14)  # 設置x軸刻度字體大小
+        plt.yticks(fontsize=14)  # 設置y軸刻度字體大小
         plt.tight_layout()
         
         # 將原始混淆矩陣圖像轉換為張量
         buf = io.BytesIO()
-        plt.savefig(buf, format='png')
+        plt.savefig(buf, format='png', dpi=150)  # 增加DPI以提高圖像質量
         buf.seek(0)
         image_raw = Image.open(buf)
         transform = transforms.ToTensor()
@@ -194,15 +204,18 @@ class LightningModel(pl.LightningModule):
         plt.figure(figsize=(12, 10))
         sns.heatmap(cm_normalized, annot=True, fmt='.2f', cmap='Blues',
                     xticklabels=class_names if class_names is not None else range(cm.shape[1]),
-                    yticklabels=class_names if class_names is not None else range(cm.shape[0]))
-        plt.title(f'{title} (Normalized)')
-        plt.xlabel('predicted_labels')
-        plt.ylabel('true_labels')
+                    yticklabels=class_names if class_names is not None else range(cm.shape[0]),
+                    annot_kws={'size': 16})  # 設置熱力圖中數字的字體大小
+        plt.title(f'{title} (Normalized)', fontsize=18)  # 設置標題字體大小
+        plt.xlabel('predicted_labels', fontsize=16)  # 設置x軸標籤字體大小
+        plt.ylabel('true_labels', fontsize=16)  # 設置y軸標籤字體大小
+        plt.xticks(fontsize=14)  # 設置x軸刻度字體大小
+        plt.yticks(fontsize=14)  # 設置y軸刻度字體大小
         plt.tight_layout()
 
         # 將標準化混淆矩陣圖像轉換為張量
         buf = io.BytesIO()
-        plt.savefig(buf, format='png')
+        plt.savefig(buf, format='png', dpi=150)  # 增加DPI以提高圖像質量
         buf.seek(0)
         image_norm = Image.open(buf)
         image_tensor_norm = transform(image_norm)

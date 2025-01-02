@@ -11,12 +11,13 @@ from .repeat_channels import repeat_channels
 
 __all__ = [
     'CoffeeBeanDataset',
-    'resnet18',
     'LightningModel',
     'LeNet',
     'VGG',
     'VGG_Pretrained',
+    'ResNetModel',
     'ResNet50Model',
+    'ResNet101Model',
     'CNNModel',
     'CoffeeBeanDataset',
     'load_config',
